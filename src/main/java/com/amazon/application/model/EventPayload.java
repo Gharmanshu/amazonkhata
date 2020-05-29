@@ -14,17 +14,20 @@ import java.time.LocalDateTime;
 @Data
 public class EventPayload {
 
+    @NonNull
+    @JsonIgnore
     private String idempotenceId;
 
-
+    @NonNull
     private Long idempotenceVersion;
 
-
+    @NonNull
     private String businessEventString;
 
+    @NonNull
     private BigDecimal amount;
 
-
+    @NonNull
     private Long marketplaceId;
 
     /**
@@ -56,6 +59,7 @@ public class EventPayload {
     /**
      * Retry count of this event, in case of failures
      */
+    @NonNull
     private int retryCount;
 
     /**
@@ -69,12 +73,13 @@ public class EventPayload {
     @JsonIgnore
     private LocalDateTime creationTime = LocalDateTime.now();
     /**
-     * Epoch seconds denoting expiration time of this event in DB
+     * expiration time of this event in DB
      */
     private LocalDateTime expirationTime;
     /**
      * Version of this event in DB. Helpful with optimistic locking
      */
+    @NonNull
     private Long recordVersion;
 
 
