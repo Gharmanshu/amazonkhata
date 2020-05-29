@@ -1,75 +1,63 @@
 package com.amazon.application.services;
 
-import com.amazon.application.enums.Channel;
-import com.amazon.application.enums.Currency;
-import com.amazon.application.enums.Marketplace;
-import com.amazon.application.enums.ProgramID;
+import com.amazon.application.enums.*;
+import com.amazon.application.exceptions.KhataBadRequestException;
+import com.amazon.application.mapp.AccountingEventMapper;
+import com.amazon.application.model.AccountingEvent;
 import com.amazon.application.model.BusinessEvent;
 import com.amazon.application.model.EventPayload;
 import com.google.gson.Gson;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * service class to validate and transform event payload
+ */
 @Service
 public class EventPayloadHelper {
-    public void validate(EventPayload eventPayload){
+
+    @Autowired
+    private AccountingEventMapper accountingEventMapper;
+
+    /**
+     * vlidate the event payload before inserting into DB
+     * @param eventPayload that has to be validated
+     * @throws KhataBadRequestException if invalid
+     */
+    public void validate(EventPayload eventPayload) throws KhataBadRequestException {
         Gson gson = new Gson();
-        BusinessEvent businessEvent = gson.fromJson(eventPayload.getBusinessEventString(),BusinessEvent.class);
-        Map<String,String> additional = businessEvent.getAdditionalDetails();
-        additional.forEach((key,value)-> {
-            int flag=0;
-            switch(key) {
-                case "channel":
-                    for(Channel c: Channel.values()){
-                        if(c.name().equals(value)){
-                           flag=1;
-                        }
-                    }
-                    if(flag ==0) eventPayload.setFailureMessage(eventPayload.getFailureMessage()+"|"+"channel");
-                    break;
-                case "site":
-                    for(Marketplace m: Marketplace.values()){
-                        if(m.name().equals(value)){
-                            flag=1;
-                        }
-                    }
-                    if(flag==0) eventPayload.setFailureMessage(eventPayload.getFailureMessage()+"|"+"marketplace");
-                    break;
-                case "programId":
-                    for(int i=0;i< ProgramID.ids.length;i++){
-                        if(ProgramID.ids[i].toString().equals(value)){
-                            flag=1;
-                        }
-                    }
-                    if(flag==0) eventPayload.setFailureMessage(eventPayload.getFailureMessage()+"|"+"programId");
-                    break;
-                default:break;
-            }
-        });
-        int flag=0;
-        for(Currency c : Currency.values()){
-           if(c.name().equals(businessEvent.getAmountDetails().getCurrency())){
-               flag=1;
-           }
-        }
-        if(flag==0) eventPayload.setFailureMessage(eventPayload.getFailureMessage()+"|"+"currency");
-        flag=0;
-        for(Currency c : Currency.values()){
-            if(c.name().equals(businessEvent.getAmountDetails().getLocalCurrency())){
-                flag=1;
-            }
-        }
-        if(flag==0) eventPayload.setFailureMessage(eventPayload.getFailureMessage()+"|"+"localCurrency");
+        final BusinessEvent businessEvent = gson.fromJson(eventPayload.getBusinessEventString(),BusinessEvent.class);
+        SourceId.ifExist(businessEvent.getSourceDetails().getSourceId());
+        EventType.ifExist(businessEvent.getEventDetails().getEventType());
     }
 
+    /**
+     * transfrom event payload according to some property
+     * @param eventPayload that has to be transformed
+     */
     public void transform(EventPayload eventPayload) {
-        if(eventPayload.getFailureMessage()==""){
-            eventPayload.setFailureStatus("false");
+        Gson gson = new Gson();
+        final BusinessEvent businessEvent = gson.fromJson(eventPayload.getBusinessEventString(),BusinessEvent.class);
+        Map<String,String> additional = businessEvent.getAdditionalDetails();
+        FailureMessageGenerator errorGenerator = new FailureMessageGenerator();
+        String failureMsg = new String("");
+        for (Map.Entry<String, String> entry : additional.entrySet()) {
+            String errorMessage = errorGenerator.generateMessage(entry.getKey(),entry.getValue());
+            failureMsg = errorMessage.equals("INVALID") ? failureMsg.concat(entry.getKey()+"|") : failureMsg.concat("") ;
         }
-        else {
-            eventPayload.setFailureStatus("true");
+        failureMsg = errorGenerator.generateMessage("currency",businessEvent.getAmountDetails().getCurrency()).equals("INVALID") ? failureMsg.concat("currency|") : failureMsg.concat("") ;
+        failureMsg = errorGenerator.generateMessage("currency",businessEvent.getAmountDetails().getLocalCurrency()).equals("INVALID") ? failureMsg.concat("local_currency|") : failureMsg.concat("") ;
+        eventPayload.setFailureMessage(failureMsg);
+        final String status = eventPayload.getFailureMessage().equals("") ? "false" : "true" ;
+        eventPayload.setFailureStatus(status);
+        eventPayload.setRetryCount(eventPayload.getRetryCount()+1);
+        if(eventPayload.getFailureStatus().equals("false")){
+            AccountingEvent accountingEvent = accountingEventMapper.toAccountingEvent(eventPayload,businessEvent);
+            String accountingEventString = gson.toJson(accountingEvent);
+            eventPayload.setAccountingEvent(accountingEventString);
+            eventPayload.setFolioId("FolioId|"+eventPayload.getIdempotenceId());
         }
     }
 }

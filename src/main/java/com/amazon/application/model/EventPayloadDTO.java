@@ -3,6 +3,7 @@ package com.amazon.application.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.Entity;
@@ -20,27 +21,32 @@ public class EventPayloadDTO {
     /**
      * Idempotence id is the partition key of the event payload table
      */
+    @NonNull
     @Id
     private String idempotenceId;
 
     /**
      * Idempotence version is the sort key of the event payload table
      */
+    @NonNull
     private Long idempotenceVersion;
 
     /**
      * Marketplace id of the event
      */
+    @NonNull
     private Long marketplaceId;
 
     /**
      * $ value of the event
      */
+    @NonNull
     private BigDecimal amount;
 
     /**
      * Business event payload received from SQS
      */
+    @NonNull
     @Lob
     private String businessEventString;
     /**
@@ -70,6 +76,7 @@ public class EventPayloadDTO {
     /**
      * Retry count of this event, i.e. how many times this event has been attempted for processing.
      */
+    @NonNull
     private int retryCount;
 
     /**
@@ -96,5 +103,6 @@ public class EventPayloadDTO {
     /**
      * Version of this event in DDB to be used for optimistic locking
      */
+    @NonNull
     private Long recordVersion;
 }

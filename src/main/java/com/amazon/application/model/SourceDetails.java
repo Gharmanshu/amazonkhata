@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
+/**
+ * class of source details of business event
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
