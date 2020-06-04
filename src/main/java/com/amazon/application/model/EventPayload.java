@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 public class EventPayload {
 
     @NonNull
-    @JsonIgnore
     private String idempotenceId;
 
     @NonNull
@@ -70,8 +69,7 @@ public class EventPayload {
     /**
      * Creation time for this event
      */
-    @JsonIgnore
-    private LocalDateTime creationTime = LocalDateTime.now();
+    private LocalDateTime creationTime;
     /**
      * expiration time of this event in DB
      */

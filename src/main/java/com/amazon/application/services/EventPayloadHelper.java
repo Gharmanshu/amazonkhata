@@ -7,6 +7,7 @@ import com.amazon.application.model.AccountingEvent;
 import com.amazon.application.model.BusinessEvent;
 import com.amazon.application.model.EventPayload;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,7 +56,8 @@ public class EventPayloadHelper {
         eventPayload.setRetryCount(eventPayload.getRetryCount()+1);
         if(eventPayload.getFailureStatus().equals("false")){
             AccountingEvent accountingEvent = accountingEventMapper.toAccountingEvent(eventPayload,businessEvent);
-            String accountingEventString = gson.toJson(accountingEvent);
+            Gson account = new GsonBuilder().setPrettyPrinting().create();
+            String accountingEventString = account.toJson(accountingEvent);
             eventPayload.setAccountingEvent(accountingEventString);
             eventPayload.setFolioId("FolioId|"+eventPayload.getIdempotenceId());
         }

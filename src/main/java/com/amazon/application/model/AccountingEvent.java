@@ -25,7 +25,7 @@ public class AccountingEvent {
      * country where event was generated
      */
     @NonNull
-    private String country_code;
+    private String countryCode;
 
     /**
      * Id of event generated
@@ -49,7 +49,7 @@ public class AccountingEvent {
      * currency code of transaction
      */
     @NonNull
-    private String currency_code;
+    private String currencyCode;
 
     /**
      * amount of transaction

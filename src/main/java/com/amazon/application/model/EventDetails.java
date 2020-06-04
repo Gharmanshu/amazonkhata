@@ -1,10 +1,12 @@
 package com.amazon.application.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -32,7 +34,8 @@ public class EventDetails {
      * activity date of event
      */
     @NonNull
-    private LocalDateTime activityDate;
+    @JsonIgnore
+    private LocalDateTime activityDate = LocalDateTime.now();
 
     /**
      * type of event happened

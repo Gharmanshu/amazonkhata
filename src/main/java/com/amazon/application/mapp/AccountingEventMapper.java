@@ -21,11 +21,11 @@ public class AccountingEventMapper {
     public AccountingEvent toAccountingEvent(@NonNull EventPayload eventPayload, @NonNull BusinessEvent businessEvent){
         AccountingEvent accountingEvent = new AccountingEvent();
         accountingEvent.setEventType(businessEvent.getEventDetails().getEventType());
-        accountingEvent.setCountry_code(businessEvent.getAdditionalDetails().get("marketplace"));
+        accountingEvent.setCountryCode(businessEvent.getAdditionalDetails().get("marketplace"));
         accountingEvent.setIdempotenceId(eventPayload.getIdempotenceId());
         accountingEvent.setIdempotenceVersion(eventPayload.getIdempotenceVersion());
         accountingEvent.setMarketplaceId(eventPayload.getMarketplaceId());
-        accountingEvent.setCurrency_code(businessEvent.getAmountDetails().getCurrency());
+        accountingEvent.setCurrencyCode(businessEvent.getAmountDetails().getCurrency());
         accountingEvent.setValue(eventPayload.getAmount());
         return accountingEvent;
     }

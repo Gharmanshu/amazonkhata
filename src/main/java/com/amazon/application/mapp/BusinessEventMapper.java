@@ -56,6 +56,8 @@ public class BusinessEventMapper {
 
             eventPayload.setRecordVersion(1L);
 
+            eventPayload.setCreationTime(businessEvent.getEventDetails().getActivityDate());
+
             return eventPayload;
         }
 }
